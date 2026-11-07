@@ -1,0 +1,1 @@
+A close photo of the label gives the page a model number to check. This one is cropped from a recall notice photo. A text reader, tesseract dot js, also runs on the phone. It keeps words shaped like model numbers, and finds X Y 1 5 3 0 2, which a glue gun recall names. The image match alone found nothing close. The model number puts that recall first.

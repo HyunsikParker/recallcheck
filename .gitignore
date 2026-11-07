@@ -1,0 +1,16 @@
+node_modules/
+__pycache__/
+.DS_Store
+# working files that stay private
+/data/
+/devpost/
+/evidence/
+/PLAN.md
+# downloaded by tesseract.js in Node; the app ships its own gzipped copy in app/models/tessdata/
+/tools/eng.traineddata
+# demo build outputs and unused photos
+/demo/build/
+/demo/audio/
+/demo/*.mp4
+/demo/photos/kettle.jpg
+/demo/photos/space-heater.jpg

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data: https://www.cpsc.gov; connect-src 'self' https://api.fda.gov https://www.saferproducts.gov; media-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="color-scheme" content="light dark">
+<title>RecallCheck</title>
+<meta name="description" content="Check whether a food package or a household product in your home is under a US safety recall. Scan the barcode or take a photo; photos stay on your phone.">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/app.css">
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<a class="skip" href="#check">Skip to the check</a>
+<header class="top">
+  <p class="wordmark">RecallCheck</p>
+  <button type="button" class="theme" id="theme-toggle" aria-pressed="false">Dark</button>
+</header>
+
+<main>
+  <h1 class="lede">Is something in your home under a recall?</h1>
+  <p class="sub">Scan a barcode or take a photo. RecallCheck looks it up in US food and product recall records. Photos stay on your phone.</p>
+
+  <section class="check" id="check" aria-labelledby="check-title">
+    <h2 id="check-title" class="visually-hidden">Check an item</h2>
+    <div class="tabs" role="tablist" aria-label="How to check">
+      <button type="button" role="tab" id="tab-barcode" aria-controls="pane-barcode" aria-selected="true">Barcode</button>
+      <button type="button" role="tab" id="tab-photo" aria-controls="pane-photo" aria-selected="false" tabindex="-1">Photo</button>
+      <button type="button" role="tab" id="tab-name" aria-controls="pane-name" aria-selected="false" tabindex="-1">Name</button>
+    </div>
+
+    <div class="pane" role="tabpanel" id="pane-barcode" aria-labelledby="tab-barcode">
+      <div class="viewfinder" id="viewfinder" hidden>
+        <video id="camera" playsinline muted></video>
+        <div class="aim" aria-hidden="true"></div>
+        <button type="button" class="quiet" id="camera-stop">Stop camera</button>
+      </div>
+      <button type="button" class="primary" id="scan-start">Scan with camera</button>
+      <form class="row" id="upc-form" novalidate>
+        <label for="upc-input">Or type the numbers under the barcode</label>
+        <div class="field">
+          <input id="upc-input" name="upc" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="0 41220 12345 6" aria-describedby="upc-hint">
+          <button type="submit">Check</button>
+        </div>
+        <p class="hint" id="upc-hint">8, 12 or 13 digits. Spaces are fine.</p>
+      </form>
+      <label class="filepick">
+        <input type="file" accept="image/*" id="barcode-file">
+        <span>Read a barcode from a saved photo</span>
+      </label>
+    </div>
+
+    <div class="pane" role="tabpanel" id="pane-photo" aria-labelledby="tab-photo" hidden>
+      <p class="pane-note">For things without a barcode, like furniture, toys and chargers. RecallCheck compares your photo with product photos from US product recall notices since 2018. A second photo of the label, with the model number in focus, lets it check that number too.</p>
+      <label class="primary filepick-primary">
+        <input type="file" accept="image/*" capture="environment" id="photo-file">
+        <span>Take or choose a photo</span>
+      </label>
+      <figure class="preview" id="photo-preview" hidden>
+        <img id="photo-preview-img" alt="Your photo">
+      </figure>
+      <p class="hint">The first photo search downloads the image model and text reader (about 31 MB) once. Both run on your phone; the photo is not uploaded.</p>
+    </div>
+
+    <div class="pane" role="tabpanel" id="pane-name" aria-labelledby="tab-name" hidden>
+      <form class="row" id="name-form" novalidate>
+        <label for="name-input">Brand, product or model number</label>
+        <div class="field">
+          <input id="name-input" name="q" type="search" autocomplete="off" placeholder="e.g. dresser, Anker, KT-CS17">
+          <button type="submit">Search</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+  <section class="results" id="results" tabindex="-1" aria-label="Result"></section>
+
+  <section class="about" aria-labelledby="how-title">
+    <h2 id="how-title">How the check works</h2>
+    <p><strong>Barcode.</strong> An exact match against barcodes printed in US recall records. Food recalls often list a barcode; household product recalls rarely do, so for those use Photo or Name.</p>
+    <p><strong>Photo.</strong> An image model turns your photo into numbers on your phone and finds recall photos that look alike. It shows possible matches and how to tell whether yours is included. It cannot confirm a match. A text reader also looks for a model number on the photo; if a recall notice names that number, the recall is shown first.</p>
+    <p><strong>No match</strong> means the item was not found in these records. It does not mean the item is safe.</p>
+    <div id="photo-quality"></div>
+    <p class="sources" id="sources"></p>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>Data from the U.S. Food and Drug Administration (openFDA food enforcement reports) and the U.S. Consumer Product Safety Commission (Recalls API). RecallCheck is a student project and is not affiliated with either agency. Always read the official notice.</p>
+</footer>
+</body>
+</html>

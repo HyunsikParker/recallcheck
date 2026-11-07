@@ -1,0 +1,30 @@
+{
+ "demo/photos/space-heater.jpg": {
+  "title": "File:Space heater.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Space_heater.jpg",
+  "license": "CC0",
+  "artist": "Hardyplants",
+  "file_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/04/Space_heater.jpg/1280px-Space_heater.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+ },
+ "demo/photos/kettle.jpg": {
+  "title": "File:Electric kettle phillips white.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File:Electric_kettle_phillips_white.JPG",
+  "license": "Public domain",
+  "artist": "Rafa",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/1/15/Electric_kettle_phillips_white.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+ },
+ "demo/photos/kettle-demo.jpg": {
+  "title": "File:Electric kettle phillips white.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File:Electric_kettle_phillips_white.JPG",
+  "license": "Public domain",
+  "artist": "Rafa",
+  "file_url": "https://upload.wikimedia.org/wikipedia/commons/1/15/Electric_kettle_phillips_white.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+  "note": "maker wordmark blurred for the demo"
+ },
+ "demo/photos/label-xy15302.jpg": {
+  "title": "CPSC recall notice photo (recall id 9285), label region cropped and enlarged 2x",
+  "file_url": "https://www.cpsc.gov/s3fs-public/Screen Shot 2022-04-13 at 9.06.20 PM.png",
+  "caption": "Location of model number for recalled Crafter's Square Glue Gun",
+  "license": "US government work (CPSC)"
+ }
+}

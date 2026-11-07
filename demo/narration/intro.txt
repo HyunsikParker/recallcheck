@@ -1,0 +1,1 @@
+RecallCheck is a phone web page that checks whether something in your home is under a US safety recall. Recall notices are published, but they rarely reach the people who own the product. A C P S C study of twenty-one recalls found that, on average, about a third of the products sold were returned or repaired. RecallCheck lets you check by barcode, by photo, or by name.

@@ -1,0 +1,7 @@
+{
+ "01-recallcheck.png": "RecallCheck: check a food package or household product against US recall records by barcode, photo or name.",
+ "02-barcode.png": "A barcode read from a saved photo matches five FDA recall reports. The newest shows the lots and dates to compare.",
+ "03-photo.png": "Photo search runs on the phone. This kettle has no close look-alike, so the page lists the five nearest recalls.",
+ "04-label.png": "The label reader finds XY-15302, a model number a glue gun recall names, although the image match found nothing close.",
+ "05-measured.png": "Held-out CPSC photos: right recall first 54% (47% on phone-like copies); reading the label lifts first place from 27% to 36%."
+}

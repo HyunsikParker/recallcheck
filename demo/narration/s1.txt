@@ -1,0 +1,1 @@
+Food recalls often print the barcode. Here the page reads a barcode from a saved photo of a package. It appears in five recall reports from the F D A. The newest comes first, with the lot codes and dates to compare with the package, the reason, and where to find the report on F D A dot gov.

@@ -1,0 +1,20 @@
+{
+ "top1": 0.5385,
+ "top5": 0.685,
+ "false_close": 0.1416,
+ "home": {
+  "top1": 0.4741,
+  "top5": 0.6346,
+  "false_close": 0.0545
+ },
+ "queries": 4680,
+ "held_out_recalls": 1412,
+ "label": {
+  "image_top1": 0.2738,
+  "fused_top1": 0.3565,
+  "text_precision": 0.8957,
+  "queries": 1366,
+  "note": "Measured on 1,366 CPSC recall photos of labels, model plates and tags, each left out of the photo index. A model number matched a notice on 163 of them. The rules that skip dates and round numbers were written while looking at these photos, so the last number may be a little high."
+ },
+ "note": "Measured on 4,680 recall photos used as queries, with the photo itself left out of the index, and on 1,412 recalls removed entirely to stand in for items that were never recalled. Home-like copies are the same photos cropped, tilted, re-lit, blurred and re-saved, as a phone photo might be. The look-alike threshold was set on home-like copies of the other half of the recalls, so photos as clean as a recall notice's are called look-alikes more often. Some recalls repeat an earlier recall of the same product, which this count treats as a miss. Real photos taken at home differ more than these copies, so expect lower numbers in real use."
+}
