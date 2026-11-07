@@ -224,3 +224,24 @@ main, .top, .foot { max-width: 36rem; margin: 0 auto; padding: 0 16px; }
 }
 .match .ident > p { margin: 0 0 6px; white-space: pre-line; }
 .label-note { margin: 10px 0 2px; color: var(--ink-2); font-size: 0.9375rem; }
+
+/* Saved items: a quiet list that only speaks up when a notice is new. */
+.saved { margin: 0 0 18px; padding: 10px 16px 12px; background: var(--panel); border-radius: var(--radius); box-shadow: 0 0 0 1px var(--soft-line); }
+.saved-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.saved-head h2 { margin: 0; font-size: 1.125rem; font-weight: 900; }
+.saved-head .quiet { min-height: 44px; padding: 8px 14px; }
+.saved-sum { margin: 6px 0 4px; font-weight: 700; color: var(--ink-2); }
+.saved-sum.fresh { color: var(--hit); }
+.saved-list { list-style: none; margin: 0; padding: 0; }
+.saved-item { padding: 8px 0; border-top: 1px solid var(--soft-line); }
+.saved-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.saved-label { font-weight: 800; overflow-wrap: anywhere; }
+.saved-row .linkish { min-height: 44px; flex: none; }
+.saved-state { margin: 0; font-size: 0.9375rem; color: var(--ink-2); }
+.saved-item.fresh .saved-state { color: var(--hit); font-weight: 800; }
+.saved-item.fresh .match { border-bottom: 0; }
+.saved-item .match .strength { color: var(--hit); }
+.saved .hint { margin-top: 8px; }
+.save-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 14px 0 0; }
+.save-row .hint { margin: 0; }
+[aria-disabled="true"] { cursor: default; opacity: 0.7; }

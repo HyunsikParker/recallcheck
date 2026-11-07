@@ -16,6 +16,9 @@ Scan or type its barcode, take a photo, or search by name. Photos stay on your p
   there, that recall is shown first as a model-number match.
 - **Name.** Brand, product or model words, searched in the shipped CPSC records (model numbers match
   without their dashes) and live in all openFDA food enforcement reports.
+- **Saved items.** Save a barcode or a name search. RecallCheck repeats saved searches when you open it again (at most once every six hours) or when you tap
+  Check now, and lists recall notices published since each one was saved.
+  The list is kept only in the browser's local storage (`app/js/saved.js`, tests in `tools/test_saved.mjs`).
 
 ## How well photo search works
 
@@ -101,7 +104,7 @@ node embed_dino.mjs onnx-community/dinov2-small ../data/raw/images_manifest_home
 node embed_dino.mjs onnx-community/dinov2-small ../data/raw/images_manifest_home_even.json ../data/raw/img_home_even ../data/build/dinohome_even
 python3 calibrate_home.py ../data/build/dinos18_cls ../data/build/dinohome_even_cls ../data/raw/images_manifest_home_even.json ../data/build/dinohome_cls ../data/raw/images_manifest_home.json ../data/build/dinos18_cls-eval.json ../data/build/calibrate-home.json
 python3 pack_photo.py ../data/build/dinos18_cls ../data/build/dinos18_cls-eval.json ../app/data ../data/build/fusion-eval.json ../data/build/calibrate-home.json
-node --test test_upc.mjs test_labeltext.mjs
+node --test test_upc.mjs test_labeltext.mjs test_saved.mjs
 ```
 
 `embed_dino.mjs` downloads the model into the transformers.js cache. Copy `config.json`,

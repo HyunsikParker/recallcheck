@@ -2,6 +2,7 @@ import { normaliseScanned } from './upc.js';
 import { loadIndex, topUp, lookupUpc, searchName, searchFdaLive, meta, liveState, card, cardsFrom } from './data.js';
 import { modelTokens, rankByTokens } from './labeltext.js';
 import { readFromFile, startCamera, stopCamera } from './scan.js';
+import * as saved from './saved.js';
 
 const $ = (id) => document.getElementById(id);
 const statusEl = $('status');
@@ -122,17 +123,18 @@ async function checkBarcode(raw, format) {
     const older = hits.length > 1
       ? el('details', { class: 'older' }, el('summary', { text: `Show ${hits.length - 1} older notice${hits.length > 2 ? 's' : ''} for this barcode` }), ...hits.slice(1).map(render))
       : null;
-    show(...[head, render(hits[0]), older].filter(Boolean));
+    show(...[head, render(hits[0]), older, saveControl(upcItem(gtin), hits.map((h) => h.key))].filter(Boolean));
     return;
   }
-  show(panel('clear', 'Recall facts', 'No recall found for this barcode', spacedUpc(gtin), [
+  show(...[panel('clear', 'Recall facts', 'No recall found for this barcode', spacedUpc(gtin), [
     el('p', { class: 'callout', text: 'Not finding a barcode does not mean the item is safe. Many recall notices list no barcode at all, especially for household products.' }),
     el('p', { text: recordsLine() }),
     el('p', {}, 'For furniture, toys, electronics and other products, try ',
       el('button', { type: 'button', class: 'linkish', 'data-go': 'photo', text: 'Photo' }), ' or ',
       el('button', { type: 'button', class: 'linkish', 'data-go': 'name', text: 'Name' }), '.'),
-  ]));
+  ]), saveControl(upcItem(gtin), [])].filter(Boolean));
 }
+const upcItem = (gtin) => ({ kind: 'upc', value: gtin, label: `Barcode ${spacedUpc(gtin)}` });
 
 $('upc-form').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -208,10 +210,12 @@ $('name-form').addEventListener('submit', async (e) => {
     let fda = { total: 0, items: [] }, liveOk = true;
     try { fda = await searchFdaLive(q, 6); } catch { liveOk = false; fda.items = local.filter((c) => c.src === 'FDA').slice(0, 6); fda.total = fda.items.length; }
     setStatus('');
+    const item = { kind: 'name', value: q, label: `“${q}”` };
+    const keys = [...cpsc, ...fda.items].map((c) => c.key);
     if (!cpsc.length && !fda.items.length) {
-      show(panel('clear', 'Name search', 'No recall found with those words', `“${q}”`, [
+      show(...[panel('clear', 'Name search', 'No recall found with those words', `“${q}”`, [
         el('p', { class: 'callout', text: 'Not finding a name does not mean the item is safe. Try the brand alone, or the model number printed on the label.' }),
-        el('p', { text: recordsLine() })]));
+        el('p', { text: recordsLine() })]), saveControl(item, keys)].filter(Boolean));
       return;
     }
     const parts = [el('p', { class: 'callout', text: 'A name match is not a match for your item. Compare the model number, lot code or date on your item with the notice.' })];
@@ -226,9 +230,122 @@ $('name-form').addEventListener('submit', async (e) => {
       parts.push(el('h4', { class: 'group', text: label }));
       parts.push(...fda.items.map((c) => compactItem(c)));
     }
-    show(panel('maybe', 'Name search', `Recalls that mention “${q}”`, null, parts));
+    show(...[panel('maybe', 'Name search', `Recalls that mention “${q}”`, null, parts), saveControl(item, keys)].filter(Boolean));
   } catch (err) { fail(err); }
 });
+
+/* ---------- saved items: checked again on later visits ---------- */
+let savedList = null; // null when this browser blocks storage
+let storage = null;
+try { storage = window.localStorage; savedList = saved.load(storage); } catch { /* storage blocked */ }
+const knownCards = new Map(); // cards fetched live this visit, for notices not in the shipped index
+let savedChecking = false;
+let savedError = '';
+const DAY = 864e5;
+const dateMs = (s) => (/^\d{8}$/.test(s || '') ? Date.UTC(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8)) : Date.parse(s || ''));
+const shortDate = (iso) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+function persist() {
+  if (!saved.store(storage, savedList)) savedError = 'This browser did not keep the change. Saved items may be lost when the page closes.';
+}
+
+function saveControl(item, keys) {
+  if (!savedList) return null;
+  const done = () => { btn.textContent = 'Saved'; btn.setAttribute('aria-disabled', 'true'); note.textContent = 'It is listed under Saved items at the top of the page.'; };
+  const btn = el('button', { type: 'button', class: 'quiet', text: item.kind === 'upc' ? 'Save this barcode' : 'Save this search' });
+  const note = el('span', { class: 'hint', text: 'RecallCheck will check it again for new recall notices.' });
+  if (saved.has(savedList, item)) done();
+  btn.addEventListener('click', () => {
+    if (btn.getAttribute('aria-disabled') === 'true') return;
+    savedList = saved.add(savedList, item, keys);
+    persist();
+    done();
+    renderSaved();
+  });
+  return el('div', { class: 'save-row' }, btn, note);
+}
+
+async function freshKeysFor(item) {
+  let cards;
+  if (item.kind === 'upc') cards = lookupUpc(item.value);
+  else {
+    const local = searchName(item.value, 30);
+    cards = local.filter((c) => c.src === 'CPSC');
+    try { cards.push(...(await searchFdaLive(item.value, 6)).items); } catch { cards.push(...local.filter((c) => c.src === 'FDA').slice(0, 6)); }
+  }
+  cards.forEach((c) => knownCards.set(c.key, c));
+  // A notice dated well before the item was saved was missed by the earlier search (for example
+  // when the live FDA search did not answer), so it is not reported as new.
+  const cutoff = Date.parse(item.savedAt || '') - 30 * DAY;
+  return cards.filter((c) => { const t = dateMs(c.date); return Number.isNaN(t) || Number.isNaN(cutoff) || t >= cutoff; }).map((c) => c.key);
+}
+
+async function checkSaved() {
+  if (!savedList?.items.length || savedChecking) return;
+  savedChecking = true;
+  savedError = '';
+  renderSaved();
+  try {
+    await loadIndex();
+    await topUp();
+    for (const item of [...savedList.items]) savedList = saved.record(savedList, item, await freshKeysFor(item));
+    savedList = saved.stamp(savedList);
+    persist();
+    if (liveState().error) savedError = 'Newer notices could not be checked just now, so this check used the records in this build.';
+  } catch (err) {
+    console.warn(err);
+    savedError = navigator.onLine ? 'The saved items could not be checked just now. Try again later.' : 'You appear to be offline. Saved items are checked again when you reconnect and reopen RecallCheck.';
+  } finally {
+    savedChecking = false;
+    renderSaved();
+  }
+}
+
+function renderSaved() {
+  const sec = $('saved');
+  if (!savedList?.items.length) { sec.hidden = true; $('saved-list').replaceChildren(); return; }
+  sec.hidden = false;
+  const fresh = savedList.items.reduce((n, i) => n + i.fresh.length, 0);
+  const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+  let sum;
+  if (savedChecking) sum = `Checking ${plural(savedList.items.length, 'saved item')}…`;
+  else if (fresh) sum = `${plural(fresh, 'new recall notice')} for your saved items.`;
+  else if (savedList.checkedAt) sum = `No new recall notices. Last checked ${new Date(savedList.checkedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.`;
+  else sum = `${plural(savedList.items.length, 'saved item')}, not checked again yet.`;
+  const sumEl = $('saved-sum');
+  sumEl.className = fresh && !savedChecking ? 'saved-sum fresh' : 'saved-sum';
+  sumEl.textContent = savedError ? `${sum} ${savedError}` : sum;
+  $('saved-check').setAttribute('aria-disabled', String(savedChecking));
+  $('saved-list').replaceChildren(...savedList.items.map((i) => {
+    const remove = el('button', { type: 'button', class: 'linkish', 'aria-label': `Remove ${i.label}`, text: 'Remove' });
+    remove.addEventListener('click', () => {
+      savedList = saved.remove(savedList, i);
+      persist();
+      renderSaved();
+      (document.querySelector('.saved-list .linkish') || (savedList.items.length ? $('saved-check') : document.querySelector('[role="tab"][aria-selected="true"]')))?.focus();
+    });
+    const since = i.savedAt ? ` since you saved it on ${shortDate(i.savedAt)}` : '';
+    const notices = i.fresh.map((k) => {
+      const c = knownCards.get(k) || card(k);
+      return c ? compactItem(c, 'New since you saved it') : el('p', { text: `Recall notice ${k.replace(':', ' ').toUpperCase()}. Tap “Check now” to show it.` });
+    });
+    let read = null;
+    if (i.fresh.length) {
+      read = el('button', { type: 'button', class: 'quiet', text: 'Mark as read' });
+      read.addEventListener('click', () => { savedList = saved.markRead(savedList, i); persist(); renderSaved(); $('saved-check').focus(); });
+    }
+    return el('li', { class: i.fresh.length ? 'saved-item fresh' : 'saved-item' },
+      el('div', { class: 'saved-row' }, el('span', { class: 'saved-label', text: i.label }), remove),
+      el('p', { class: 'saved-state', text: i.fresh.length ? `${plural(i.fresh.length, 'new recall notice')}${since}.` : `No new recall notice${since}.` }),
+      ...notices, read);
+  }));
+}
+
+$('saved-check').addEventListener('click', () => {
+  if ($('saved-check').getAttribute('aria-disabled') !== 'true') checkSaved();
+});
+renderSaved();
+if (savedList && saved.due(savedList)) checkSaved();
 
 /* ---------- photo search ---------- */
 let photoRun = 0; // a newer photo cancels the label reading of an older one
@@ -379,9 +496,9 @@ function applyTheme(t) {
   themeBtn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
   themeBtn.setAttribute('aria-pressed', String(dark));
 }
-let saved = null;
-try { saved = localStorage.getItem('rc-theme'); } catch { /* storage blocked */ }
-applyTheme(saved);
+let savedTheme = null;
+try { savedTheme = localStorage.getItem('rc-theme'); } catch { /* storage blocked */ }
+applyTheme(savedTheme);
 themeBtn.addEventListener('click', () => {
   const dark = themeBtn.getAttribute('aria-pressed') === 'true';
   const next = dark ? 'light' : 'dark';
@@ -393,6 +510,7 @@ themeBtn.addEventListener('click', () => {
 (async () => {
   try {
     await loadIndex();
+    renderSaved(); // saved notices can now show their titles
     const m = meta();
     $('sources').textContent = `Records in this build: ${m.fda_reports_read.toLocaleString('en-US')} FDA food recall reports from ${fdaFrom(m)} to ${prettyDate(m.fda_latest_report_date)} (${m.fda_reports_with_upc.toLocaleString('en-US')} list a barcode) and ${m.cpsc_recalls_read.toLocaleString('en-US')} CPSC product recalls from ${cpscFrom(m)} to ${prettyDate(m.cpsc_latest_recall_date)}. Newer notices are checked live when you search.`;
     const q = await fetch('data/photo-quality.json').then((r) => (r.ok ? r.json() : null)).catch(() => null);

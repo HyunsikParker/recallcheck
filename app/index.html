@@ -22,6 +22,16 @@
   <h1 class="lede">Is something in your home under a recall?</h1>
   <p class="sub">Scan a barcode or take a photo. RecallCheck looks it up in US food and product recall records. Photos stay on your phone.</p>
 
+  <section class="saved" id="saved" aria-labelledby="saved-title" hidden>
+    <div class="saved-head">
+      <h2 id="saved-title">Saved items</h2>
+      <button type="button" class="quiet" id="saved-check">Check now</button>
+    </div>
+    <p class="saved-sum" id="saved-sum" role="status" aria-live="polite"></p>
+    <ul class="saved-list" id="saved-list"></ul>
+    <p class="hint">Kept only in this browser. RecallCheck checks them again when you open it and points out recall notices published since you saved them.</p>
+  </section>
+
   <section class="check" id="check" aria-labelledby="check-title">
     <h2 id="check-title" class="visually-hidden">Check an item</h2>
     <div class="tabs" role="tablist" aria-label="How to check">
