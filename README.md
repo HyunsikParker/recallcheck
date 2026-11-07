@@ -129,6 +129,10 @@ The English language data in `app/models/tessdata/` is the `eng.traineddata` tha
 - DINOv2-small weights (Apache-2.0, Meta; ONNX export by onnx-community) and Tesseract English LSTM data
   (Apache-2.0, tessdata_best), in `app/models/`.
 
+## AI assistance
+
+Claude (Anthropic), working through Claude Code, wrote the code, tests, evaluation scripts and documentation, starting on November 7, 2026. The measured results come from the evaluation scripts in this repository, run on the index the app ships.
+
 ## License
 
 The RecallCheck code in this repository is under the MIT License (`LICENSE`). The vendored libraries and model
